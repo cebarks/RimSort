@@ -1,0 +1,101 @@
+# .copr/Makefile
+# SRPM build script for Copr (Fedora build system)
+#
+# Copr invokes this with: make -f .copr/Makefile srpm outdir="<outdir>" spec="<spec_path>"
+#
+# This Makefile:
+# 1. Extracts version from git tags
+# 2. Installs required build dependencies (git, rpm-build, rpmdevtools)
+# 3. Creates source tarball with submodules using git archive
+# 4. Builds SRPM and places it in outdir for Copr to consume
+
+# Default target - invoked by Copr
+.PHONY: srpm
+srpm: install-deps fetch-tags
+	@echo "==> Building SRPM for RimSort"
+	@$(MAKE) -f .copr/Makefile create-tarball
+	@$(MAKE) -f .copr/Makefile build-srpm
+
+# Install required dependencies in the mock chroot
+# Copr runs in a minimal environment, so we need to install tools
+.PHONY: install-deps
+install-deps:
+	@echo "==> Installing build dependencies"
+	@if ! command -v git &> /dev/null; then \
+		dnf install -y git; \
+	fi
+	@if ! command -v rpmbuild &> /dev/null; then \
+		dnf install -y rpm-build rpmdevtools; \
+	fi
+
+# Fetch git tags from remote if not already available
+# COPR clones the repo but doesn't fetch tags by default
+.PHONY: fetch-tags
+fetch-tags:
+	@echo "==> Ensuring git tags are available"
+	@if git rev-parse --is-inside-work-tree &> /dev/null; then \
+		if git describe --tags --abbrev=0 &> /dev/null 2>&1; then \
+			echo "Git tags already available"; \
+		else \
+			echo "Git tags not found, fetching from remote..."; \
+			git fetch --tags origin || { \
+				echo "ERROR: Failed to fetch tags from remote"; \
+				exit 1; \
+			}; \
+			echo "Git tags fetched successfully"; \
+		fi; \
+	else \
+		echo "ERROR: Not in a git repository"; \
+		exit 1; \
+	fi
+
+# Extract version from git tag and create source tarball
+# Reuses existing packaging/rpm/make-tarball.sh script
+.PHONY: create-tarball
+create-tarball:
+	@echo "==> Creating source tarball with submodules"
+
+	# Extract version from git tag (strip 'v' prefix)
+	# Example: v1.0.63 -> 1.0.63
+	$(eval VERSION := $(shell git describe --tags --abbrev=0 | sed 's/^v//'))
+	@if [ -z "$(VERSION)" ]; then \
+		echo "ERROR: Could not determine version from git tags"; \
+		echo "ERROR: Ensure tags are fetched with: git fetch --tags origin"; \
+		exit 1; \
+	fi
+	@echo "Detected version: $(VERSION)"
+
+	# Create rpmbuild directory structure (script expects this)
+	@mkdir -p $$HOME/rpmbuild/SOURCES
+
+	# Call existing script to create tarball with submodules
+	@bash packaging/rpm/make-tarball.sh "$(VERSION)"
+
+	# Copy tarball to current directory where rpmbuild can find it
+	@cp $$HOME/rpmbuild/SOURCES/rimsort-$(VERSION).tar.gz $(CURDIR)/
+	@echo "Tarball copied to: $(CURDIR)/rimsort-$(VERSION).tar.gz"
+	@ls -lh "$(CURDIR)/rimsort-$(VERSION).tar.gz"
+
+# Build SRPM from spec file and source tarball
+# Copr expects SRPM in the $(outdir) directory
+.PHONY: build-srpm
+build-srpm:
+	@echo "==> Building SRPM"
+
+	# Extract version from git tag (same as create-tarball)
+	$(eval VERSION := $(shell git describe --tags --abbrev=0 | sed 's/^v//'))
+	@echo "Building SRPM for version: $(VERSION)"
+
+	# Build SRPM using rpmbuild
+	# -bs: build source package only
+	# --define "_sourcedir $(CURDIR)": look for source tarball in current directory
+	# --define "_srcrpmdir $(outdir)": output SRPM to Copr's specified outdir
+	# --define "version $(VERSION)": override %{version} macro in spec file
+	@rpmbuild -bs "$(spec)" \
+		--define "_sourcedir $(CURDIR)" \
+		--define "_srcrpmdir $(outdir)" \
+		--define "version $(VERSION)"
+
+	@echo "SRPM build complete!"
+	@echo "Output directory contents:"
+	@ls -lh "$(outdir)"

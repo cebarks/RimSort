@@ -38,11 +38,24 @@ fetch-tags:
 			echo "Git tags already available"; \
 		else \
 			echo "Git tags not found, fetching from remote..."; \
-			git fetch --tags origin || { \
-				echo "ERROR: Failed to fetch tags from remote"; \
+			REMOTE=$$(git remote | head -n 1); \
+			if [ -z "$$REMOTE" ]; then \
+				echo "ERROR: No git remote configured"; \
+				exit 1; \
+			fi; \
+			echo "Using remote: $$REMOTE"; \
+			git fetch --tags "$$REMOTE" || { \
+				echo "ERROR: Failed to fetch tags from remote $$REMOTE"; \
 				exit 1; \
 			}; \
 			echo "Git tags fetched successfully"; \
+			TAG_COUNT=$$(git tag -l | wc -l); \
+			echo "Number of tags available: $$TAG_COUNT"; \
+			if [ "$$TAG_COUNT" -eq 0 ]; then \
+				echo "WARNING: No tags found after fetch!"; \
+				echo "Listing remotes:"; \
+				git remote -v; \
+			fi; \
 		fi; \
 	else \
 		echo "ERROR: Not in a git repository"; \

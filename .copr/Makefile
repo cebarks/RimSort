@@ -11,7 +11,7 @@
 
 # Default target - invoked by Copr
 .PHONY: srpm
-srpm: install-deps
+srpm: install-deps fetch-tags
 	@echo "==> Building SRPM for RimSort"
 	@$(MAKE) -f .copr/Makefile create-tarball
 	@$(MAKE) -f .copr/Makefile build-srpm
@@ -28,6 +28,27 @@ install-deps:
 		dnf install -y rpm-build rpmdevtools; \
 	fi
 
+# Fetch git tags from remote if not already available
+# COPR clones the repo but doesn't fetch tags by default
+.PHONY: fetch-tags
+fetch-tags:
+	@echo "==> Ensuring git tags are available"
+	@if git rev-parse --is-inside-work-tree &> /dev/null; then \
+		if git describe --tags --abbrev=0 &> /dev/null 2>&1; then \
+			echo "Git tags already available"; \
+		else \
+			echo "Git tags not found, fetching from remote..."; \
+			git fetch --tags origin || { \
+				echo "ERROR: Failed to fetch tags from remote"; \
+				exit 1; \
+			}; \
+			echo "Git tags fetched successfully"; \
+		fi; \
+	else \
+		echo "ERROR: Not in a git repository"; \
+		exit 1; \
+	fi
+
 # Extract version from git tag and create source tarball
 # Reuses existing packaging/rpm/make-tarball.sh script
 .PHONY: create-tarball
@@ -39,6 +60,7 @@ create-tarball:
 	$(eval VERSION := $(shell git describe --tags --abbrev=0 | sed 's/^v//'))
 	@if [ -z "$(VERSION)" ]; then \
 		echo "ERROR: Could not determine version from git tags"; \
+		echo "ERROR: Ensure tags are fetched with: git fetch --tags origin"; \
 		exit 1; \
 	fi
 	@echo "Detected version: $(VERSION)"

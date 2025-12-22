@@ -30,6 +30,9 @@ install-deps:
 	@if ! command -v uv &> /dev/null; then \
 		dnf install -y uv; \
 	fi
+	@if ! command -v python3.12 &> /dev/null; then \
+		dnf install -y python3.12; \
+	fi
 
 # Fetch git tags from remote if not already available
 # COPR clones the repo but doesn't fetch tags by default
@@ -77,7 +80,8 @@ populate-uv-cache:
 
 	# Set cache directory and populate it by syncing dependencies
 	# Include dev dependencies and build group to ensure all packages are available
-	UV_CACHE_DIR=$(CURDIR)/.uv-cache uv sync --locked --group build
+	# Explicitly use python3.12 to match pyproject.toml requirements
+	UV_CACHE_DIR=$(CURDIR)/.uv-cache uv sync --locked --group build --python python3.12
 
 	@echo "uv cache populated at: $(CURDIR)/.uv-cache"
 	@du -sh "$(CURDIR)/.uv-cache"

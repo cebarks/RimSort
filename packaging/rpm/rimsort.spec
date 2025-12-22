@@ -25,6 +25,7 @@ BuildRequires:  gcc-c++
 BuildRequires:  python3.12
 BuildRequires:  python3.12-devel
 BuildRequires:  uv
+BuildRequires:  patchelf
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 

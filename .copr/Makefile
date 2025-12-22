@@ -33,6 +33,9 @@ install-deps:
 	@if ! command -v python3.12 &> /dev/null; then \
 		dnf install -y python3.12; \
 	fi
+	# Install libgomp - required by rpmbuild at runtime in Fedora 43+
+	# Without this, rpmbuild -bs fails with "error while loading shared libraries: libgomp.so.1"
+	@dnf install -y libgomp
 
 # Fetch git tags from remote if not already available
 # COPR clones the repo but doesn't fetch tags by default

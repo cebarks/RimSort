@@ -596,30 +596,6 @@ wheels = [
 ]
 
 [[package]]
-name = "protobuf"
-version = "6.32.0rc1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/86/b1/f7b5c6b37b114d39732602527027d4f2ffbd80903f1e7823cbb0962064ef/protobuf-6.32.0rc1.tar.gz", hash = "sha256:922c47dfcc13d73988de8d99ef17160536845235a32d613bd6014007298875e7", size = 440064, upload-time = "2025-07-22T22:15:39.477Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/11/27e4c1d86f970d23655130fead209a018e3215588b6c061a686f5bd54488/protobuf-6.32.0rc1-cp310-abi3-win32.whl", hash = "sha256:74ecc3a3c8f19d733f33c65c0ed5cada772dda19fbe79c70c111b2eaede4891e", size = 423914, upload-time = "2025-07-22T22:15:27.473Z" },
-    { url = "https://files.pythonhosted.org/packages/ea/6d/08348bff8a51741183a03652fdbd2a75a1b435bd327d25199e684c3f2662/protobuf-6.32.0rc1-cp310-abi3-win_amd64.whl", hash = "sha256:4f5eccac14cb771f3d6f1664521fff68c368d48d9101aa89e177a42aaf94127d", size = 435201, upload-time = "2025-07-22T22:15:30.393Z" },
-    { url = "https://files.pythonhosted.org/packages/ae/c6/cf5d6097401a1d8b465ada19c237ef636b7ea22107c58a3740ccf8084b24/protobuf-6.32.0rc1-cp39-abi3-macosx_10_9_universal2.whl", hash = "sha256:96b99f57178beaa59482921cc44239f1c06f4edebb0af41921f5841e61e8f6b1", size = 425793, upload-time = "2025-07-22T22:15:31.805Z" },
-    { url = "https://files.pythonhosted.org/packages/77/09/a6e309d3dc7afeee1f768ac2065d83b8263497c1b24e04d049e808e691e9/protobuf-6.32.0rc1-cp39-abi3-manylinux2014_aarch64.whl", hash = "sha256:f832dc1d251a542abd3d748e703189dfb869764a5d03d8eaf2b20c127f889868", size = 322334, upload-time = "2025-07-22T22:15:33.161Z" },
-    { url = "https://files.pythonhosted.org/packages/65/67/f076e58770b0328f91f04ff0f0a618cba60e7141bf4538f25529bf87bb77/protobuf-6.32.0rc1-cp39-abi3-manylinux2014_x86_64.whl", hash = "sha256:462debec285648f569d411ac1bd166dd79288293dc232d4174a1b0dbcfba1182", size = 321289, upload-time = "2025-07-22T22:15:34.24Z" },
-    { url = "https://files.pythonhosted.org/packages/92/d1/65452a8063b66ce0451ff44545500e066048a2c6ac182914cefd89f08a49/protobuf-6.32.0rc1-py3-none-any.whl", hash = "sha256:b6c1ef273354b60b2b10ce107406bab32e905ba1db7c8fb100635ef7117c5931", size = 168912, upload-time = "2025-07-22T22:15:37.701Z" },
-]
-
-[[package]]
-name = "protobuf3-to-dict"
-version = "0.1.5"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "protobuf", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "six", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/55/522bb43539fed463275ee803d79851faaebe86d17e7e3dbc89870d0322b9/protobuf3-to-dict-0.1.5.tar.gz", hash = "sha256:1e42c25b5afb5868e3a9b1962811077e492c17557f9c66f0fe40d821375d2b5a", size = 3508, upload-time = "2017-02-23T04:43:57.047Z" }
-
-[[package]]
 name = "psutil"
 version = "7.1.3"
 source = { registry = "https://pypi.org/simple" }
@@ -927,7 +903,6 @@ dependencies = [
     { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "sqlalchemy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "steam", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "steamfiles", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "toposort", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "watchdog", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "zstandard", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -980,7 +955,6 @@ requires-dist = [
     { name = "requests", specifier = "==2.32.5" },
     { name = "sqlalchemy", specifier = "==2.0.45" },
     { name = "steam", specifier = "==1.4.4" },
-    { name = "steamfiles", git = "https://github.com/RimSort/steamfiles" },
     { name = "toposort", specifier = "==1.10" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "zstandard", specifier = "==0.25.0" },
@@ -1096,15 +1070,6 @@ dependencies = [
     { name = "vdf", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9a/31/62ac25584988182dee5ee949395e08943ff8b11634dc33abab7078d28433/steam-1.4.4.tar.gz", hash = "sha256:2b5bd6911c0d4a7312f441b8d162b9d8d47c8bebb8efc6c8867393b0323fa52e", size = 644071, upload-time = "2022-12-10T11:16:22.757Z" }
-
-[[package]]
-name = "steamfiles"
-version = "0.1.4"
-source = { git = "https://github.com/RimSort/steamfiles#18bb08d5ff8b0e36d4cc14453deaf58d721339e4" }
-dependencies = [
-    { name = "protobuf", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "protobuf3-to-dict", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-]
 
 [[package]]
 name = "toposort"

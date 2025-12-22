@@ -2,6 +2,20 @@
 @default:
     just --list
 
+# Mock Build Testing (for COPR validation)
+# - mock-build-srpm: Quick SRPM creation test (no full build)
+# - mock-build-rpm: Full SRPM + RPM build in isolated chroot (matches COPR)
+#
+# Setup (one-time):
+#   sudo dnf install -y mock
+#   sudo usermod -a -G mock $USER
+#   # Then log out and back in, or: newgrp mock
+#
+# Usage:
+#   just mock-build-srpm 1.0.63          # Test SRPM only
+#   just mock-build-rpm 1.0.63           # Full build (default: fedora-rawhide-x86_64)
+#   just mock-build-rpm 1.0.63 fedora-43-x86_64  # Specific Fedora version
+
 # Core Development
 
 # Run the RimSort application
@@ -82,7 +96,7 @@ build-version VERSION: submodules-init check
     uv run python distribute.py --product-version="{{VERSION}}"
 
 # Create source tarball with submodules for RPM building
-rpm-tarball VERSION='1.0.0':
+rpm-tarball VERSION='0.0.0~git':
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -94,29 +108,11 @@ rpm-tarball VERSION='1.0.0':
         FULL_VERSION="{{VERSION}}"
     fi
 
-    TARBALL="$HOME/rpmbuild/SOURCES/rimsort-$FULL_VERSION.tar.gz"
-
-    echo "Creating source tarball with submodules for version $FULL_VERSION..."
-
-    # Create temporary directory
-    TMPDIR=$(mktemp -d)
-    trap 'rm -rf "$TMPDIR"' EXIT
-
-    # Archive main repository
-    git archive --prefix="RimSort-$FULL_VERSION/" HEAD | tar -x -C "$TMPDIR"
-
-    # Archive submodules
-    git submodule foreach --quiet "git archive --prefix=\"RimSort-$FULL_VERSION/\$displaypath/\" HEAD | tar -x -C \"$TMPDIR\""
-
-    # Create the final tarball
-    cd "$TMPDIR"
-    tar -czf "$TARBALL" "RimSort-$FULL_VERSION"
-
-    echo "Tarball created: $TARBALL"
-    ls -lh "$TARBALL"
+    # Call existing script to create tarball
+    bash packaging/rpm/make-tarball.sh "$FULL_VERSION"
 
 # Build RPM package for Fedora/RHEL (e.g., just build-rpm 1.0.63 or just build-rpm 1.0.63.1)
-build-rpm VERSION='1.0.0': check (rpm-tarball VERSION)
+build-rpm VERSION='0.0.0~git': check (rpm-tarball VERSION)
     #!/usr/bin/env bash
     set -euo pipefail
 
@@ -142,6 +138,84 @@ build-rpm VERSION='1.0.0': check (rpm-tarball VERSION)
     else
         echo "Warning: Could not find built RPM"
     fi
+
+# Build RPM using Mock (COPR-like environment) - tests SRPM creation + RPM build
+mock-build-rpm VERSION='0.0.0~git' MOCK_CONFIG='fedora-rawhide-x86_64':
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Auto-append .1 if version has only 3 parts
+    PART_COUNT=$(echo "{{VERSION}}" | tr '.' '\n' | wc -l)
+    if [ "$PART_COUNT" -eq 3 ]; then
+        FULL_VERSION="{{VERSION}}.1"
+    else
+        FULL_VERSION="{{VERSION}}"
+    fi
+
+    echo "Testing COPR build locally with Mock..."
+    echo "Version: $FULL_VERSION"
+    echo "Mock config: {{MOCK_CONFIG}}"
+
+    # Create SRPM using the same .copr/Makefile that COPR uses
+    OUTDIR=$(mktemp -d)
+    trap 'rm -rf "$OUTDIR"' EXIT
+
+    echo "==> Building SRPM (using .copr/Makefile)"
+    make -f .copr/Makefile srpm \
+        outdir="$OUTDIR" \
+        spec="$(pwd)/packaging/rpm/rimsort.spec"
+
+    SRPM=$(find "$OUTDIR" -name '*.src.rpm' | head -n 1)
+    if [ -z "$SRPM" ]; then
+        echo "ERROR: SRPM not found in $OUTDIR"
+        exit 1
+    fi
+
+    echo "==> SRPM created: $SRPM"
+
+    # Build RPM using Mock (same as COPR does)
+    echo "==> Building RPM with Mock"
+    mock -r {{MOCK_CONFIG}} --rebuild "$SRPM" --resultdir="$OUTDIR/mock-results"
+
+    echo "==> Build complete!"
+    echo "Results in: $OUTDIR/mock-results"
+    ls -lh "$OUTDIR/mock-results"/*.rpm 2>/dev/null || true
+
+    # Keep the results
+    KEEP_DIR="$HOME/mock-builds/rimsort-$FULL_VERSION-$(date +%Y%m%d-%H%M%S)"
+    mkdir -p "$(dirname "$KEEP_DIR")"
+    cp -r "$OUTDIR/mock-results" "$KEEP_DIR"
+    echo "Results saved to: $KEEP_DIR"
+
+# Quick SRPM-only test (faster iteration without full Mock build)
+mock-build-srpm VERSION='0.0.0~git':
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Auto-append .1 if version has only 3 parts
+    PART_COUNT=$(echo "{{VERSION}}" | tr '.' '\n' | wc -l)
+    if [ "$PART_COUNT" -eq 3 ]; then
+        FULL_VERSION="{{VERSION}}.1"
+    else
+        FULL_VERSION="{{VERSION}}"
+    fi
+
+    echo "Testing SRPM creation only..."
+    echo "Version: $FULL_VERSION"
+
+    OUTDIR=$(mktemp -d)
+    trap 'rm -rf "$OUTDIR"' EXIT
+
+    make -f .copr/Makefile srpm \
+        outdir="$OUTDIR" \
+        spec="$(pwd)/packaging/rpm/rimsort.spec"
+
+    echo "==> SRPM created successfully:"
+    ls -lh "$OUTDIR"/*.src.rpm
+
+    # Optionally inspect contents
+    echo -e "\n==> SRPM contents:"
+    rpm -qlp "$OUTDIR"/*.src.rpm
 
 # Utilities
 

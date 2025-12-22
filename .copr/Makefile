@@ -11,7 +11,7 @@
 
 # Default target - invoked by Copr
 .PHONY: srpm
-srpm: install-deps fetch-tags
+srpm: install-deps fetch-tags populate-uv-cache download-todds
 	@echo "==> Building SRPM for RimSort"
 	@$(MAKE) -f .copr/Makefile create-tarball
 	@$(MAKE) -f .copr/Makefile build-srpm
@@ -61,6 +61,32 @@ fetch-tags:
 		echo "ERROR: Not in a git repository"; \
 		exit 1; \
 	fi
+
+# Populate uv cache for offline builds in mock/COPR
+# This allows the RPM build phase to install dependencies without network access
+.PHONY: populate-uv-cache
+populate-uv-cache:
+	@echo "==> Populating uv cache for offline builds"
+
+	# Remove existing .venv and cache to force fresh download
+	@rm -rf .venv .uv-cache
+	@mkdir -p .uv-cache
+
+	# Set cache directory and populate it by syncing dependencies
+	# Include dev dependencies and build group to ensure all packages are available
+	UV_CACHE_DIR=$(CURDIR)/.uv-cache uv sync --locked --group build
+
+	@echo "uv cache populated at: $(CURDIR)/.uv-cache"
+	@du -sh "$(CURDIR)/.uv-cache"
+
+# Download todds for offline builds
+# todds is a texture optimization tool used during the build
+.PHONY: download-todds
+download-todds:
+	@echo "==> Downloading todds for offline build"
+	@.venv/bin/python distribute.py --skip-build --skip-submodules
+	@echo "todds downloaded to: $(CURDIR)/todds/"
+	@ls -lh "$(CURDIR)/todds/" 2>/dev/null || echo "Warning: todds directory not found"
 
 # Extract version from git tag and create source tarball
 # Reuses existing packaging/rpm/make-tarball.sh script

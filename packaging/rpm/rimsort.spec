@@ -28,6 +28,7 @@ BuildRequires:  uv
 BuildRequires:  patchelf
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
+BuildRequires:  libgomp
 
 Requires:       glibc
 
@@ -56,12 +57,22 @@ cat > version.xml << 'EOF'
 EOF
 
 %build
-# Sync dependencies using uv
-uv sync --locked --no-dev --group build
+# Use bundled uv cache for offline installation if it exists
+# This allows builds in isolated environments (mock/COPR) without network access
+if [ -d ".uv-cache" ]; then
+    echo "Using bundled uv cache for offline build"
+    export UV_CACHE_DIR="$(pwd)/.uv-cache"
+    uv sync --locked --group build --offline
+else
+    echo "No bundled cache found, downloading dependencies online"
+    uv sync --locked --group build
+fi
 
 # Build using the existing distribute.py script
-# Skip git submodule init (already in tarball), use pre-built SteamworksPy libs, download todds
-uv run --frozen python ./distribute.py --product-version='%{version}' --skip-submodules
+# Skip git submodule init (already in tarball), use pre-built SteamworksPy libs
+# Skip todds download (already bundled in tarball from SRPM phase)
+# Use .venv/bin/python directly to avoid uv trying to sync dev dependencies
+.venv/bin/python ./distribute.py --product-version='%{version}' --skip-submodules --skip-todds
 
 %install
 # Create directory structure
@@ -127,5 +138,5 @@ appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/io.github
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &> /dev/null || :
 
 %changelog
-* Fri Dec 20 2025 Anten Skrabec <cebarks@gmail.com> - 1.0.63-1
+* Fri Dec 20 2024 Anten Skrabec <cebarks@gmail.com> - 1.0.63-1
 - Initial RPM packaging for COPR

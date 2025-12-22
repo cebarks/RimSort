@@ -158,7 +158,6 @@ mock-build-rpm VERSION='0.0.0~git' MOCK_CONFIG='fedora-rawhide-x86_64':
 
     # Create SRPM using the same .copr/Makefile that COPR uses
     OUTDIR=$(mktemp -d)
-    trap 'rm -rf "$OUTDIR"' EXIT
 
     echo "==> Building SRPM (using .copr/Makefile)"
     make -f .copr/Makefile srpm \
@@ -175,17 +174,24 @@ mock-build-rpm VERSION='0.0.0~git' MOCK_CONFIG='fedora-rawhide-x86_64':
 
     # Build RPM using Mock (same as COPR does)
     echo "==> Building RPM with Mock"
-    mock -r {{MOCK_CONFIG}} --rebuild "$SRPM" --resultdir="$OUTDIR/mock-results"
+    mock -r {{MOCK_CONFIG}} --rebuild "$SRPM" --resultdir="$OUTDIR/mock-results" --no-cleanup-after || true
 
-    echo "==> Build complete!"
-    echo "Results in: $OUTDIR/mock-results"
-    ls -lh "$OUTDIR/mock-results"/*.rpm 2>/dev/null || true
-
-    # Keep the results
+    # Keep the results (even if build failed)
     KEEP_DIR="$HOME/mock-builds/rimsort-$FULL_VERSION-$(date +%Y%m%d-%H%M%S)"
     mkdir -p "$(dirname "$KEEP_DIR")"
-    cp -r "$OUTDIR/mock-results" "$KEEP_DIR"
-    echo "Results saved to: $KEEP_DIR"
+    if [ -d "$OUTDIR/mock-results" ]; then
+        cp -r "$OUTDIR/mock-results" "$KEEP_DIR"
+        echo "Results saved to: $KEEP_DIR"
+        echo "Build log: $KEEP_DIR/build.log"
+
+        # Show last 50 lines of build log if it exists
+        if [ -f "$KEEP_DIR/build.log" ]; then
+            echo "==> Last 50 lines of build.log:"
+            tail -50 "$KEEP_DIR/build.log"
+        fi
+    else
+        echo "WARNING: No mock results found at $OUTDIR/mock-results"
+    fi
 
 # Quick SRPM-only test (faster iteration without full Mock build)
 mock-build-srpm VERSION='0.0.0~git':
@@ -204,7 +210,6 @@ mock-build-srpm VERSION='0.0.0~git':
     echo "Version: $FULL_VERSION"
 
     OUTDIR=$(mktemp -d)
-    trap 'rm -rf "$OUTDIR"' EXIT
 
     make -f .copr/Makefile srpm \
         outdir="$OUTDIR" \

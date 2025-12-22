@@ -178,3 +178,7 @@ version.xml
 
 # Dictionaries
 ltex.dictionary*
+
+# rpm/copr build artifacts
+rimsort-*.tar.gz
+*.rpm

@@ -27,6 +27,9 @@ install-deps:
 	@if ! command -v rpmbuild &> /dev/null; then \
 		dnf install -y rpm-build rpmdevtools; \
 	fi
+	@if ! command -v uv &> /dev/null; then \
+		dnf install -y uv; \
+	fi
 
 # Fetch git tags from remote if not already available
 # COPR clones the repo but doesn't fetch tags by default

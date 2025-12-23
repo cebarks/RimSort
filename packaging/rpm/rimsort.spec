@@ -28,8 +28,8 @@ BuildRequires:  uv
 BuildRequires:  patchelf
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
-BuildRequires:  libgomp(x86-64)
-BuildRequires:  libatomic(x86-64)
+BuildRequires:  libgomp
+BuildRequires:  libatomic
 
 Requires:       glibc
 

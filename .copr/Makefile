@@ -94,7 +94,7 @@ populate-uv-cache:
 .PHONY: download-todds
 download-todds:
 	@echo "==> Downloading todds for offline build"
-	@.venv/bin/python distribute.py --skip-build --skip-submodules --skip-steamworkspy
+	@.venv/bin/python distribute.py --skip-build --skip-submodules
 	@echo "todds downloaded to: $(CURDIR)/todds/"
 	@ls -lh "$(CURDIR)/todds/" 2>/dev/null || echo "Warning: todds directory not found"
 

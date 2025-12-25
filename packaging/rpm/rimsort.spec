@@ -61,8 +61,8 @@ EOF
 uv sync --locked --no-dev --group build
 
 # Build using the existing distribute.py script
-# Skip git submodule init (already in tarball), use pre-built SteamworksPy libs, download todds
-uv run --frozen python ./distribute.py --product-version='%{version}' --skip-submodules --skip-steamworkspy
+# Skip git submodule init (already in tarball), copy pre-built SteamworksPy libs, download todds
+uv run --frozen python ./distribute.py --product-version='%{version}' --skip-submodules
 
 %install
 # Create directory structure

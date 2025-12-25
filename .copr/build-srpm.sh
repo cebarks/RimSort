@@ -22,25 +22,12 @@ fi
 
 echo "Building SRPM for version $FULL_VERSION"
 
-# Initialize and update git submodules
+# Initialize git submodules
 echo "Initializing git submodules..."
 git submodule update --init --recursive
 
-# Create source tarball with submodules
-echo "Creating source tarball with submodules..."
-TMPDIR=$(mktemp -d)
-trap "rm -rf $TMPDIR" EXIT
-
-# Archive main repository
-git archive --prefix="RimSort-$FULL_VERSION/" HEAD | tar -x -C "$TMPDIR"
-
-# Archive each submodule
-git submodule foreach --quiet "git archive --prefix=\"RimSort-$FULL_VERSION/\$displaypath/\" HEAD | tar -x -C \"$TMPDIR\""
-
-# Create final tarball
-cd "$TMPDIR"
-tar -czf "$outdir/rimsort-$FULL_VERSION.tar.gz" "RimSort-$FULL_VERSION"
-echo "Tarball created: $outdir/rimsort-$FULL_VERSION.tar.gz"
+# Create source tarball using existing script
+packaging/rpm/make-tarball.sh "$FULL_VERSION" "$outdir"
 
 # Build SRPM using rpmbuild
 echo "Building SRPM..."

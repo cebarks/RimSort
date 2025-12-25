@@ -4,7 +4,8 @@
 set -e
 
 VERSION="${1:-1.0.63}"
-TARBALL="$HOME/rpmbuild/SOURCES/rimsort-$VERSION.tar.gz"
+OUTDIR="${2:-$HOME/rpmbuild/SOURCES}"
+TARBALL="$OUTDIR/rimsort-$VERSION.tar.gz"
 
 echo "Creating source tarball with submodules..."
 

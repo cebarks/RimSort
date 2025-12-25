@@ -1,4 +1,4 @@
 .PHONY: srpm
 
 srpm:
-	@bash .copr/build-srpm.sh
+	just build-srpm "$(outdir)"

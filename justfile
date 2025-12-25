@@ -126,6 +126,28 @@ build-rpm VERSION=version: check (rpm-tarball VERSION)
     RPM_FILE=$(find ~/rpmbuild/RPMS/x86_64/ -name "rimsort-{{VERSION}}-*.rpm" | head -n 1)
     echo "Built RPM: $RPM_FILE"
 
+# Build SRPM (source RPM) package - for COPR builds and local testing
+build-srpm VERSION=version OUTDIR="": check (rpm-tarball VERSION)
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    echo "Setting up RPM build environment..."
+    mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+
+    echo "Building SRPM package for version {{VERSION}}..."
+    rpmbuild -bs packaging/rpm/rimsort.spec --define "version {{VERSION}}"
+
+    SRPM_FILE=$(find ~/rpmbuild/SRPMS/ -name "rimsort-{{VERSION}}-*.src.rpm" | head -n 1)
+
+    if [ -n "{{OUTDIR}}" ]; then
+        echo "Copying SRPM to {{OUTDIR}}..."
+        mkdir -p "{{OUTDIR}}"
+        cp "$SRPM_FILE" "{{OUTDIR}}/"
+        echo "SRPM copied to: {{OUTDIR}}/$(basename "$SRPM_FILE")"
+    else
+        echo "Built SRPM: $SRPM_FILE"
+    fi
+
 # Utilities
 
 # Initialize and update git submodules (run after cloning)

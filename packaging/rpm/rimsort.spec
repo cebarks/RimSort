@@ -28,6 +28,7 @@ BuildRequires:  uv
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 BuildRequires:  libgomp
+BuildRequires:  patchelf
 
 Requires:       glibc
 

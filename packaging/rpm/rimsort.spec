@@ -27,6 +27,7 @@ BuildRequires:  python3.12-devel
 BuildRequires:  uv
 BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
+BuildRequires:  libgomp
 
 Requires:       glibc
 

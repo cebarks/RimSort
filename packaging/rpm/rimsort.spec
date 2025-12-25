@@ -29,6 +29,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  libappstream-glib
 BuildRequires:  libgomp
 BuildRequires:  patchelf
+BuildRequires:  just
 
 Requires:       glibc
 
@@ -127,5 +128,6 @@ appstream-util validate-relax --nonet %{buildroot}%{_datadir}/metainfo/io.github
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &> /dev/null || :
 
 %changelog
-* Fri Dec 20 2025 Anten Skrabec <cebarks@gmail.com> - 1.0.63-1
+* Wed Dec 25 2025 Anten Skrabec <cebarks@gmail.com>
+- 1.0.63-1
 - Initial RPM packaging for COPR

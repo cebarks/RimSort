@@ -11,7 +11,6 @@ echo "Creating source tarball with submodules..."
 
 # Create temporary directory
 TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR"' EXIT
 
 # Archive main repository
 git archive --prefix="RimSort-$VERSION/" HEAD | tar -x -C "$TMPDIR"
